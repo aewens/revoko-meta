@@ -28,7 +28,7 @@ A component's metadata will be injected by the meta component's tooling into a `
         "minor": 0,
         "patch": 0,
         "phase": "stable",
-        "index": 0
+        "index": 0,
         "feature": ""
     },
     "depends": {
@@ -95,7 +95,7 @@ The versioning system loosely follows the guidelines specified in [Semantic Vers
 
 To allow specific versions to be checked out from any component a tag for the current version will be automatically added after each commit. To facilitate this, the tools for the meta component will act as a wrapper for some actions in `git` to make sure operations are performed in the appropriate order (e.g. committing changes, checking out branches, merging branches, applying tags, etc). The following will outline the actions that the meta component will facilitate to standardize the development flow for all other components:
 
-- After any change to the version a new git tag will be made in the form "vMAJOR.MINOR.PATCH[-PHASE[.INDEX][+FEATURE]]".
+- After any change to the version a new git tag will be made in the form `vMAJOR.MINOR.PATCH[-PHASE[.INDEX][+FEATURE]]`.
 
 - If the phase portion of the version is explicitly bumped up through the tooling it will zero out the index portion of the version. It will also clear out the feature portion of the version if transitioning to rc or stable from a state that is not rc or stable.
 
