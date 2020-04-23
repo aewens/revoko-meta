@@ -121,4 +121,12 @@ To allow specific versions to be checked out from any component a tag for the cu
 
 - Transitioning the phase portion from any state that is not stable or rc (designated here as `previousPhase`) to stable will checkout the develop branch followed by merging the `$feature-$previousPhase` branch into, and then checkout the master branch followed by merging the develop branch into it.
 
-This will ensure that all stable code remains in the master branch, all stable testing code remains in the develop branch, and all unstable code remains in their own feature branches. This also means that all coding merging into master must be done through the develop branch and that all feature branches will at some point have been based on the develop branch. Also, for all of this to work the component tooling willneed to be used in place of some of the git functionality (e.g. instead of manually running `git commit`, it will be done through the tooling). While this sacrifices some freedom using `git` during development, it ensures the development flow remains consistent across all components if utilized properly.
+- Whenever a commit is made to the master branch (i.e. when a version has the "stable" phase) the floating tag "stable" will be reassigned to point to the same commit.
+
+- Whenever a commit is made to the develop branch (i.e. when a version as the "rc" phase) the floating tag "testing" will be reassigned to point to the same commit.
+
+- Whenever a commit is made to neither the master nor develop branch (i.e. when a version has neither the "stable" nor "rc" phase) the floating tag "unstable" will be reassigned to point to the same commit.
+
+- Whenever a floating tag is reassigned the meta floating tag "latest" will also be reassigned to point to the same commit. This will not apply to the latest tag being rassigned to prevent endless recursion.
+
+This system will isolate all stable code into the master branch, all stable testing code into the develop branch, and all unstable code into feature branches. This allows for easily seeing the progress of features and release candidates as well as easily viewing their history. The floating tags also allow for components to lackadaisically request specific types of versions (i.e. stable, unstable, testing, or latest) rather than explicitly requesting a singular or range of point release(s). However, for all of this to work the component tooling will need to be used in place of some of the git functionality (e.g. instead of manually running `git commit`, it will be done through the tooling). While this sacrifices some freedom using `git` during development, it ensures the development flow remains consistent across all components if utilized properly.
