@@ -26,7 +26,7 @@ def test_init():
     assert dependency is not None, "dependency data type is not defined"
     shared["dependency"] = dependency
 
-    metadata = creating.Metadata("meta", 1, version, [dependency])
+    metadata = creating.Metadata("meta", 1, version, {"mock": dependency})
     assert metadata is not None, "metadata data type is not defined"
     shared["metadata"] = metadata
 
@@ -76,8 +76,11 @@ def test_metadata():
     assert isinstance(md.name, str), "name is not a str"
     assert isinstance(md.schema, int), "schema is not an int"
     assert isinstance(md.version, version), "version is not a Version"
-    assert isinstance(md.depends, list), "depends is not a list"
+    assert isinstance(md.depends, dict), "depends is not a list"
 
-    types = set(map(type, md.depends))
-    assert len(types), "depends is not a a homogeneous list"
-    assert types.pop() == dependency, "depends is not a Dependency"
+    keys = set(map(type, md.depends.keys()))
+    values = set(map(type, md.depends.values()))
+    assert len(keys), "depends keys are not a homogeneous list"
+    assert keys.pop() == str, "depends key is not a str"
+    assert len(values), "depends values are not a homogeneous list"
+    assert values.pop() == dependency, "depends value is not a Dependency"
