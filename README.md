@@ -36,8 +36,7 @@ A component's metadata will be injected by the meta component's tooling into a `
         "component2": "v1.x.x",
         "component3": "v1.1.0-rc.x",
         "component4": "v1.1.0-alpha+logging"
-    },
-    "test": "make test"
+    }
 }
 ```
 
@@ -50,8 +49,6 @@ The purpose for each field is as follows:
 - version: This is an object that splits up the parts of the version number to easily adjust it during the course of the development process. The string presentation would be in the format: `vMAJOR.MINOR.PATCH-PHASE.INDEX+FEATURE`.
 
 - depends: This is an object that specifies if the component depends on any other components and what versions of each is expected. To lazy match versions the numeric portion can be replaced with "x" to act as a wildcard (e.g. "v1.1.x" will match against "v1.1.0" as well as "v1.1.100") and can also explicitly specify unstable versions of a component (although this is not advised).
-
-- test: This is the command to run the unit tests for the component. While this optional, it is strongly recommended to be included for every component.
 
 ### Versioning
 
