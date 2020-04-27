@@ -1,0 +1,15 @@
+{
+    "name": "meta",
+    "schema": 1,
+    "version": {
+        "major": 1,
+        "minor": 0,
+        "patch": 0,
+        "phase": "stable",
+        "index": 0,
+        "feature": ""
+    },
+    "depends": {
+        "testing": "v1.x.x"
+    }
+}
