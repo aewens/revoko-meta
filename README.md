@@ -11,6 +11,8 @@ Since revoko is intended to be a modular system composed of various different co
 
 - Development Flow: All packages will follow the same development flow of tagging versions and creating / organizing branches. The former standardizes how to checkout specific versions of a component while the latter ensures a separation between stable and unstable code in the branches.
 
+- Building / Installing / Testing: All components will use the same mechanism to facilitate building, installing, and/or testing the component.
+
 ## Specifications
 
 To formalize how each task handled by the meta component will be standardized, the following specifications will outline the pre-defined behaviors and expections.
@@ -127,3 +129,7 @@ To allow specific versions to be checked out from any component a tag for the cu
 - Whenever a floating tag is reassigned the meta floating tag "latest" will also be reassigned to point to the same commit. This will not apply to the latest tag being rassigned to prevent endless recursion.
 
 This system will isolate all stable code into the master branch, all stable testing code into the develop branch, and all unstable code into feature branches. This allows for easily seeing the progress of features and release candidates as well as easily viewing their history. The floating tags also allow for components to lackadaisically request specific types of versions (i.e. stable, unstable, testing, or latest) rather than explicitly requesting a singular or range of point release(s). However, for all of this to work the component tooling will need to be used in place of some of the git functionality (e.g. instead of manually running `git commit`, it will be done through the tooling). While this sacrifices some freedom using `git` during development, it ensures the development flow remains consistent across all components if utilized properly.
+
+### Building / Installing / Testing
+
+All components will have a `Makefile` to facilitate building, installing, and testing (if any are applicable). The targets will be build, install, and test (respectively). If a build or install target is present, a "clean" target will need to be added as well to facilitate cleaning up anything added by build or install to allow te component to be re-built or re-installed. The default target will be the target "all", such that running `make` and `make all` will perform the same action(s).
