@@ -1,4 +1,4 @@
-from meta.creating.version import Version
+from meta.domain.version import Version
 
 from typing import NamedTuple
 
