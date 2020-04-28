@@ -1,4 +1,4 @@
-from .context import domain
+from .context import domain, arch
 
 from enum import Enum
 
@@ -6,81 +6,152 @@ shared = dict()
 
 def test_init():
     phase = domain.Phase.STABLE
-    assert phase is not None, "stable phase is not defined"
+    assert phase is not None
     shared["phase"] = phase
 
     version = domain.Version(1, 0, 0, phase, 0, "")
-    assert version is not None, "version data type is not defined"
+    assert version is not None
     shared["version"] = version
 
     commit = "0" * 40
     branch = domain.Branch("master", commit, version)
-    assert branch is not None, "branch data type is not defined"
+    assert branch is not None
     shared["branch"] = branch
 
     tag = domain.Tag(branch, version)
-    assert tag is not None, "tag data type is not defined"
+    assert tag is not None
     shared["tag"] = tag
 
     dependency = domain.Dependency("mock", "meta", version)
-    assert dependency is not None, "dependency data type is not defined"
+    assert dependency is not None
     shared["dependency"] = dependency
 
     metadata = domain.Metadata("meta", 1, version, {"mock": dependency})
-    assert metadata is not None, "metadata data type is not defined"
+    assert metadata is not None
     shared["metadata"] = metadata
 
 def test_phase():
     phase = domain.Phase
-    assert phase.UNSTABLE.value == 0, "unstable phase is not set to 0"
-    assert phase.ALPHA.value == 1, "alpha phase is not set to 1"
-    assert phase.BETA.value == 2, "beta phase is not set to 2"
-    assert phase.RC.value == 3, "rc phase is not set to 3"
-    assert phase.STABLE.value == 4, "stable phase is not set to 4"
+    assert phase.UNSTABLE.value == 1
+    assert phase.ALPHA.value == 2
+    assert phase.BETA.value == 3
+    assert phase.RC.value == 4
+    assert phase.STABLE.value == 5
+
+def test_version_type():
+    version = shared.get("version")
+    assert isinstance(version.major, int)
+    assert isinstance(version.minor, int)
+    assert isinstance(version.patch, int)
+    assert isinstance(version.phase, domain.Phase)
+    assert isinstance(version.phase_index, int)
+    assert isinstance(version.feature, str)
 
 def test_version():
-    version = shared.get("version")
-    assert isinstance(version.major, int), "major is not an int"
-    assert isinstance(version.minor, int), "minor is not an int"
-    assert isinstance(version.patch, int), "patch is not an int"
-    assert isinstance(version.phase, domain.Phase), "phase is not a Phase"
-    assert isinstance(version.phase_index, int), "phase index is not an int"
-    assert isinstance(version.feature, str), "feature is not a str"
+    stable = domain.Phase.STABLE
+    version0 = domain.Version(1, 2, 3, domain.Phase.ALPHA, 2, "test")
+
+    version1 = version0.bump_major()
+    assert version1.major == 2
+    assert version1.minor == 0
+    assert version1.patch == 0
+    assert version1.phase == stable
+    assert version1.phase_index == 0
+    assert version1.feature == ""
+
+    version2 = version0.bump_minor()
+    assert version2.major == 1
+    assert version2.minor == 3
+    assert version2.patch == 0
+    assert version2.phase == stable
+    assert version2.phase_index == 0
+    assert version2.feature == ""
+
+    version3 = version0.bump_patch()
+    assert version3.major == 1
+    assert version3.minor == 2
+    assert version3.patch == 4
+    assert version3.phase == stable
+    assert version3.phase_index == 0
+    assert version3.feature == ""
+
+    version4 = version0.bump_phase()
+    assert version4.major == 1
+    assert version4.minor == 2
+    assert version4.patch == 3
+    assert version4.phase == domain.Phase.BETA
+    assert version4.phase_index == 0
+    assert version4.feature == "test"
+
+    new_phase = domain.Phase.RC
+    version5 = version0.transition_phase(new_phase)
+    assert version5.major == 1
+    assert version5.minor == 2
+    assert version5.patch == 3
+    assert version5.phase == new_phase
+    assert version5.phase_index == 0
+    assert version5.feature == "test"
+
+    try:
+        version6 = version0.transition_phase(domain.Phase.UNSTABLE)
+
+    except arch.LogicError as e:
+        assert True
+
+    else:
+        assert False
+
+    version7 = version0.bump_phase_index()
+    assert version7.major == 1
+    assert version7.minor == 2
+    assert version7.patch == 3
+    assert version7.phase == domain.Phase.ALPHA
+    assert version7.phase_index == 3
+    assert version7.feature == "test"
+
+    new_feature = "trial"
+    version8 = version0.set_feature(new_feature)
+    assert version8.major == 1
+    assert version8.minor == 2
+    assert version8.patch == 3
+    assert version8.phase == domain.Phase.UNSTABLE
+    assert version8.phase_index == 0
+    assert version8.feature == new_feature
 
 def test_branch():
     version = domain.Version
     branch = shared.get("branch")
-    assert isinstance(branch.name, str), "name is not a str"
-    assert isinstance(branch.commit, str), "commit is not a str"
-    assert len(branch.commit) == 40, "commit is not a git commit hash"
-    assert isinstance(branch.version, version), "version is not a Version"
+    assert isinstance(branch.name, str)
+    assert isinstance(branch.commit, str)
+    assert len(branch.commit) == 40
+    assert isinstance(branch.version, version)
 
 def test_tag():
     version = domain.Version
     branch = domain.Branch
     tag = shared.get("tag")
-    assert isinstance(tag.branch, branch), "branch is not a Branch"
-    assert isinstance(tag.version, version), "version is not a Version"
+    assert isinstance(tag.branch, branch)
+    assert isinstance(tag.version, version)
 
 def test_dependency():
     version = domain.Version
     dependency = shared.get("dependency")
-    assert isinstance(dependency.name, str), "name is not a str"
-    assert isinstance(dependency.parent, str), "parent is not a str"
-    assert isinstance(dependency.version, version), "version is not a Version"
+    assert isinstance(dependency.name, str)
+    assert isinstance(dependency.parent, str)
+    assert isinstance(dependency.version, version)
 
 def test_metadata():
     version = domain.Version
     dependency = domain.Dependency
     md = shared.get("metadata")
-    assert isinstance(md.name, str), "name is not a str"
-    assert isinstance(md.schema, int), "schema is not an int"
-    assert isinstance(md.version, version), "version is not a Version"
-    assert isinstance(md.depends, dict), "depends is not a list"
+    assert isinstance(md.name, str)
+    assert isinstance(md.schema, int)
+    assert isinstance(md.version, version)
+    assert isinstance(md.depends, dict)
 
     keys = set(map(type, md.depends.keys()))
     values = set(map(type, md.depends.values()))
-    assert len(keys), "depends keys are not a homogeneous list"
-    assert keys.pop() == str, "depends key is not a str"
-    assert len(values), "depends values are not a homogeneous list"
-    assert values.pop() == dependency, "depends value is not a Dependency"
+    assert len(keys)
+    assert keys.pop() == str
+    assert len(values)
+    assert values.pop() == dependency
