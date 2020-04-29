@@ -50,9 +50,11 @@ def test_prototype_with():
 
     else:
         assert True
+        assert te1.attr1 == "a"
+        assert te1.attr2 == 1
 
     try:
-        te2 = TestEntity("a", 1, 2)
+        te2 = TestEntity(attr1="a", attr2=1, attr3=2)
 
     except arch.LogicError as e:
         assert True
@@ -61,7 +63,7 @@ def test_prototype_with():
         assert False
 
     try:
-        te3 = TestEntity("a")
+        te3 = TestEntity(attr1="a")
 
     except arch.LogicError as e:
         assert True

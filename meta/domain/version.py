@@ -1,29 +1,20 @@
 from meta.architecture import LogicError
-from meta.architecture.entity import Entity, prototype_with
+from meta.architecture.entity import Entity
 from enum import IntEnum, auto
-from typing import NamedTuple, Dict, Any
+from typing import Dict, Any
 
-class Phase(IntEnum):
+class VersionPhase(IntEnum):
     UNSTABLE = auto()
     ALPHA = auto()
     BETA = auto()
     RC = auto()
     STABLE = auto()
 
-class VersionType(NamedTuple):
-    major: int
-    minor: int
-    patch: int
-    phase: Phase
-    phase_index: int
-    feature: str
-
-#@prototype_with(VersionType)
 class Version(Entity):
     major: int
     minor: int
     patch: int
-    phase: Phase
+    phase: VersionPhase
     phase_index: int
     feature: str
 
@@ -32,7 +23,7 @@ class Version(Entity):
         kwargs["major"] = 0
         kwargs["minor"] = 0
         kwargs["patch"] = 0
-        kwargs["phase"] = Phase.STABLE
+        kwargs["phase"] = VersionPhase.STABLE
         kwargs["phase_index"] = 0
         kwargs["feature"] = ""
         return kwargs
@@ -96,10 +87,10 @@ class Version(Entity):
 
     def bump_phase(self) -> "Version":
         mapping = dict()
-        mapping[Phase.UNSTABLE] = Phase.ALPHA
-        mapping[Phase.ALPHA] = Phase.BETA
-        mapping[Phase.BETA] = Phase.RC
-        mapping[Phase.RC] = Phase.STABLE
+        mapping[VersionPhase.UNSTABLE] = VersionPhase.ALPHA
+        mapping[VersionPhase.ALPHA] = VersionPhase.BETA
+        mapping[VersionPhase.BETA] = VersionPhase.RC
+        mapping[VersionPhase.RC] = VersionPhase.STABLE
 
         next_phase = mapping.get(self.phase)
         if next_phase is None:
@@ -107,7 +98,7 @@ class Version(Entity):
 
         return self.transition_phase(next_phase)
 
-    def transition_phase(self, phase: Phase) -> "Version":
+    def transition_phase(self, phase: VersionPhase) -> "Version":
         current = self.phase.value
         replace = phase.value
         if replace == current:
@@ -125,7 +116,7 @@ class Version(Entity):
 
     def set_feature(self, feature: str) -> "Version":
         kwargs: Dict[str, Any] = self._current_kwargs()
-        kwargs["phase"] = Phase.UNSTABLE
+        kwargs["phase"] = VersionPhase.UNSTABLE
         kwargs["phase_index"] = 0
         kwargs["feature"] = feature
         return Version(**kwargs)

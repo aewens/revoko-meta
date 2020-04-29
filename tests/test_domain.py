@@ -5,33 +5,40 @@ from enum import Enum
 shared = dict()
 
 def test_init():
-    phase = domain.Phase.STABLE
+    commit = 
+
+    phase = domain.VersionPhase.STABLE
     assert phase is not None
     shared["phase"] = phase
 
-    version = domain.Version(1, 0, 0, phase, 0, "")
+    version = domain.Version(major=1, minor=0, patch=0, phase=phase,
+        phase_index=0, feature="")
     assert version is not None
     shared["version"] = version
 
-    commit = "0" * 40
-    branch = domain.Branch("master", commit, version)
+    bstate = domain.GitBranchState.STABLE
+    branch = domain.GitBranch(name="master", commit="0" * 40, version=version,
+        state=bstate)
     assert branch is not None
     shared["branch"] = branch
 
-    tag = domain.Tag(branch, version)
+    tag = domain.GitTag(branch=branch, version=version)
     assert tag is not None
     shared["tag"] = tag
 
-    dependency = domain.Dependency("mock", "meta", version)
+    dependency = domain.Dependency(name="mock", parent="meta", version=version)
     assert dependency is not None
     shared["dependency"] = dependency
 
-    metadata = domain.Metadata("meta", 1, version, {"mock": dependency})
+    metadata = domain.Metadata(name="meta", schema=1, version=version,
+        depends={"mock": dependency})
     assert metadata is not None
     shared["metadata"] = metadata
 
+    #ms = domain.MetaState()
+
 def test_phase():
-    phase = domain.Phase
+    phase = domain.VersionPhase
     assert phase.UNSTABLE.value == 1
     assert phase.ALPHA.value == 2
     assert phase.BETA.value == 3
@@ -43,13 +50,14 @@ def test_version_type():
     assert isinstance(version.major, int)
     assert isinstance(version.minor, int)
     assert isinstance(version.patch, int)
-    assert isinstance(version.phase, domain.Phase)
+    assert isinstance(version.phase, domain.VersionPhase)
     assert isinstance(version.phase_index, int)
     assert isinstance(version.feature, str)
 
 def test_version():
-    stable = domain.Phase.STABLE
-    version0 = domain.Version(1, 2, 3, domain.Phase.ALPHA, 2, "test")
+    stable = domain.VersionPhase.STABLE
+    version0 = domain.Version(major=1, minor=2, patch=3,
+        phase=domain.VersionPhase.ALPHA, phase_index=2, feature="test")
 
     version1 = version0.bump_major()
     assert version1.major == 2
@@ -79,11 +87,11 @@ def test_version():
     assert version4.major == 1
     assert version4.minor == 2
     assert version4.patch == 3
-    assert version4.phase == domain.Phase.BETA
+    assert version4.phase == domain.VersionPhase.BETA
     assert version4.phase_index == 0
     assert version4.feature == "test"
 
-    new_phase = domain.Phase.RC
+    new_phase = domain.VersionPhase.RC
     version5 = version0.transition_phase(new_phase)
     assert version5.major == 1
     assert version5.minor == 2
@@ -93,7 +101,7 @@ def test_version():
     assert version5.feature == "test"
 
     try:
-        version6 = version0.transition_phase(domain.Phase.UNSTABLE)
+        version6 = version0.transition_phase(domain.VersionPhase.UNSTABLE)
 
     except arch.LogicError as e:
         assert True
@@ -105,7 +113,7 @@ def test_version():
     assert version7.major == 1
     assert version7.minor == 2
     assert version7.patch == 3
-    assert version7.phase == domain.Phase.ALPHA
+    assert version7.phase == domain.VersionPhase.ALPHA
     assert version7.phase_index == 3
     assert version7.feature == "test"
 
@@ -114,21 +122,33 @@ def test_version():
     assert version8.major == 1
     assert version8.minor == 2
     assert version8.patch == 3
-    assert version8.phase == domain.Phase.UNSTABLE
+    assert version8.phase == domain.VersionPhase.UNSTABLE
     assert version8.phase_index == 0
     assert version8.feature == new_feature
 
-def test_branch():
+def test_branch_type():
     version = domain.Version
+    bstate = domain.GitBranchState
     branch = shared.get("branch")
     assert isinstance(branch.name, str)
     assert isinstance(branch.commit, str)
     assert len(branch.commit) == 40
     assert isinstance(branch.version, version)
+    assert isinstance(branch.state, bstate)
+
+def test_branch():
+    vphase = domain.VersionPhase.ALPHA
+    version = domain.Version(major=1, minor=2, patch=3, phase=vphase,
+        phase_index=2, feature="test")
+
+    commit = "0" * 40
+    bstate = domain.GitBranchState.STABLE
+    branch = domain.GitBranch(name="test-alpha", commit=commit, version=version,
+        state=bstate)
 
 def test_tag():
     version = domain.Version
-    branch = domain.Branch
+    branch = domain.GitBranch
     tag = shared.get("tag")
     assert isinstance(tag.branch, branch)
     assert isinstance(tag.version, version)
