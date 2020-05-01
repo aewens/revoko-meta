@@ -10,24 +10,24 @@ from meta.domain.metadata import Metadata
 from typing import Dict, Any
 
 class MetaState(object):
-    def __init__(self, metadata, git_repo):
+    def __init__(self, metadata: Metadata, repo: GitRepo) -> None:
         self._metadata = metadata
-        self._git_repo = git_repo
-        self._version = self._metdata.version
-        self._branch = self._git_repo.current_branch 
+        self._repo = repo
+        self._version = self._metadata.version
+        self._branch = self._repo.current_branch 
 
     @property
-    def metadata(self):
+    def metadata(self) -> Metadata:
         return self._metadata
 
     @property
-    def git_repo(self):
-        return self._git_repo
+    def repo(self) -> GitRepo:
+        return self._repo
 
     @property
-    def version(self):
+    def version(self) -> Version:
         return self._version
 
     @property
-    def branch(self):
+    def branch(self) -> GitBranch:
         return self._branch

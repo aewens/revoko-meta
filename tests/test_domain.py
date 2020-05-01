@@ -1,11 +1,29 @@
 from .context import domain, arch
 
 from enum import Enum
+from time import time
+from hashlib import sha1 as make_sha1
 
 shared = dict()
 
+def raises(test_case, exception):
+    try:
+        test_case()
+        return False
+
+    except exception as e:
+        return True
+
+def rand_sha1(seed):
+    sha1hash = make_sha1()
+    sha1hash.update(seed.encode())
+    return sha1hash.hexdigest()
+
 def test_init():
-    commit = 
+    sha1 = rand_sha1("test")
+    when = int(time())
+    commit = domain.GitCommit(sha1=sha1, when=when)
+    assert commit is not None
 
     phase = domain.VersionPhase.STABLE
     assert phase is not None
@@ -17,7 +35,8 @@ def test_init():
     shared["version"] = version
 
     bstate = domain.GitBranchState.STABLE
-    branch = domain.GitBranch(name="master", commit="0" * 40, version=version,
+    assert bstate is not None
+    branch = domain.GitBranch(name="master", commit=sha1, version=version,
         state=bstate)
     assert branch is not None
     shared["branch"] = branch
@@ -35,7 +54,24 @@ def test_init():
     assert metadata is not None
     shared["metadata"] = metadata
 
-    #ms = domain.MetaState()
+    repo = domain.GitRepo(current_branch=branch, branches=[branch], tags=[tag],
+        commits=[commit])
+    assert repo is not None
+    shared["repo"] = repo
+
+    state = domain.MetaState(metadata=metadata, repo=repo)
+    assert state is not None
+    shared["state"] = state
+
+def test_commit():
+    sha1 = rand_sha1("test")
+    when = int(time())
+    commit = domain.GitCommit(sha1=sha1, when=when)
+    assert isinstance(commit.sha1, str)
+    assert len(commit.sha1) == 40
+    assert len(set(commit.sha1).difference(set("0123456789abcdef"))) == 0
+    assert isinstance(commit.when, int)
+    assert commit.when > 0
 
 def test_phase():
     phase = domain.VersionPhase
@@ -100,14 +136,8 @@ def test_version():
     assert version5.phase_index == 0
     assert version5.feature == "test"
 
-    try:
-        version6 = version0.transition_phase(domain.VersionPhase.UNSTABLE)
-
-    except arch.LogicError as e:
-        assert True
-
-    else:
-        assert False
+    version6 = lambda: version0.transition_phase(domain.VersionPhase.UNSTABLE)
+    assert raises(version6, arch.LogicError)
 
     version7 = version0.bump_phase_index()
     assert version7.major == 1
@@ -141,7 +171,7 @@ def test_branch():
     version = domain.Version(major=1, minor=2, patch=3, phase=vphase,
         phase_index=2, feature="test")
 
-    commit = "0" * 40
+    commit = rand_sha1("test")
     bstate = domain.GitBranchState.STABLE
     branch = domain.GitBranch(name="test-alpha", commit=commit, version=version,
         state=bstate)
@@ -171,7 +201,54 @@ def test_metadata():
 
     keys = set(map(type, md.depends.keys()))
     values = set(map(type, md.depends.values()))
-    assert len(keys)
+    assert len(keys) == 1
     assert keys.pop() == str
-    assert len(values)
+    assert len(values) == 1
     assert values.pop() == dependency
+
+def test_repo():
+    tag = domain.GitTag
+    branch = domain.GitBranch
+    commit = domain.GitCommit
+    repo = shared.get("repo")
+    assert isinstance(repo.current_branch, branch)
+
+    assert isinstance(repo.branches, list)
+    btypes = set(map(type, repo.branches))
+    assert len(btypes) == 1
+    assert btypes.pop() == branch
+
+    assert isinstance(repo.tags, list)
+    ttypes = set(map(type, repo.tags))
+    assert len(ttypes) == 1
+    assert ttypes.pop() == tag
+
+    assert isinstance(repo.commits, list)
+    tcommit = set(map(type, repo.commits))
+    assert len(tcommit) == 1
+    assert tcommit.pop() == commit
+
+def test_metastate():
+    metadata = domain.Metadata
+    repo = domain.GitRepo
+    branch = domain.GitBranch
+    version = domain.Version
+    state = shared.get("state")
+    #state = domain.MetaState(metadata=metadata, repo=repo)
+
+    assert isinstance(state.metadata, metadata)
+    assert isinstance(state.repo, repo)
+    assert isinstance(state.branch, branch)
+    assert isinstance(state.version, version)
+
+    mut_metadata = lambda: setattr(state, "metadata", None)
+    assert raises(mut_metadata, AttributeError)
+
+    mut_repo = lambda: setattr(state, "repo", None)
+    assert raises(mut_repo, AttributeError)
+
+    mut_branch = lambda: setattr(state, "branch", None)
+    assert raises(mut_branch, AttributeError)
+
+    mut_version = lambda: setattr(state, "version", None)
+    assert raises(mut_version, AttributeError)

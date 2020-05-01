@@ -7,7 +7,7 @@ from enum import IntEnum, auto
 
 class GitCommit(Entity):
     sha1: str
-    when: float
+    when: int
 
 class GitBranchState(IntEnum):
     FEATURE = auto()
@@ -25,7 +25,6 @@ class GitTag(Entity):
     version: Version
 
 class GitRepo(Entity):
-    repo: str
     current_branch: GitBranch
     branches: List[GitBranch]
     tags: List[GitTag]

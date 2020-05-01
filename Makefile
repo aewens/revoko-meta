@@ -9,8 +9,8 @@ install: venv requirements.txt
 	venv/bin/python3 -m pip install -U pip
 	venv/bin/python3 -m pip install -r requirements.txt
 
-test:
-	venv/bin/pytest --cov=meta/ --mypy --mypy-ignore-missing-imports meta/**/*.py tests/test_*.py
-
 clean:
 	rm -rf venv/
+
+test:
+	venv/bin/pytest --showlocals --cov=meta/ meta/**/*.py tests/test_*.py

@@ -30,12 +30,12 @@ class Version(Entity):
 
     def _current_kwargs(self) -> Dict[str, Any]:
         kwargs: Dict[str, Any] = dict()
-        kwargs["major"] = self.major
-        kwargs["minor"] = self.minor
-        kwargs["patch"] = self.patch
-        kwargs["phase"] = self.phase
-        kwargs["phase_index"] = self.phase_index
-        kwargs["feature"] = self.feature
+        kwargs["major"] = self._major
+        kwargs["minor"] = self._minor
+        kwargs["patch"] = self._patch
+        kwargs["phase"] = self._phase
+        kwargs["phase_index"] = self._phase_index
+        kwargs["feature"] = self._feature
         return kwargs
 
     def _increase_major(self, major: int) -> "Version":
@@ -43,7 +43,7 @@ class Version(Entity):
             raise LogicError(f"Increase must be positive: {major}")
 
         kwargs = self._reset_kwargs()
-        kwargs["major"] = self.major + major
+        kwargs["major"] = self._major + major
         return Version(**kwargs)
 
     def _increase_minor(self, minor: int) -> "Version":
@@ -51,8 +51,8 @@ class Version(Entity):
             raise LogicError(f"Increase must be positive: {minor}")
 
         kwargs = self._reset_kwargs()
-        kwargs["major"] = self.major
-        kwargs["minor"] = self.minor + minor
+        kwargs["major"] = self._major
+        kwargs["minor"] = self._minor + minor
         return Version(**kwargs)
 
     def _increase_patch(self, patch: int) -> "Version":
@@ -60,9 +60,9 @@ class Version(Entity):
             raise LogicError(f"Increase must be positive: {patch}")
 
         kwargs = self._reset_kwargs()
-        kwargs["major"] = self.major
-        kwargs["minor"] = self.minor
-        kwargs["patch"] = self.patch + patch
+        kwargs["major"] = self._major
+        kwargs["minor"] = self._minor
+        kwargs["patch"] = self._patch + patch
         return Version(**kwargs)
 
     def _increase_phase_index(self, phase_index: int) -> "Version":
@@ -70,7 +70,7 @@ class Version(Entity):
             raise LogicError(f"Increase must be positive: {phase_index}")
 
         kwargs = self._current_kwargs()
-        kwargs["phase_index"] = self.phase_index + phase_index
+        kwargs["phase_index"] = self._phase_index + phase_index
         return Version(**kwargs)
 
     def bump_major(self) -> "Version":
@@ -92,20 +92,20 @@ class Version(Entity):
         mapping[VersionPhase.BETA] = VersionPhase.RC
         mapping[VersionPhase.RC] = VersionPhase.STABLE
 
-        next_phase = mapping.get(self.phase)
+        next_phase = mapping.get(self._phase)
         if next_phase is None:
-            raise LogicError(f"Cannot bump phase: {self.phase.name}")
+            raise LogicError(f"Cannot bump phase: {self._phase.name}")
 
         return self.transition_phase(next_phase)
 
     def transition_phase(self, phase: VersionPhase) -> "Version":
-        current = self.phase.value
+        current = self._phase.value
         replace = phase.value
         if replace == current:
             return self
 
         elif replace < current:
-            higher = self.phase.name
+            higher = self._phase.name
             lower = phase.name
             raise LogicError(f"{higher} cannot transition to {lower}")
 
