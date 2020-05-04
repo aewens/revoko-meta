@@ -55,7 +55,7 @@ def test_init():
     state = domain.MetaState(metadata=metadata, repo=repo)
     assert state is not None
 
-    transition = service.UseState(metadata=metadata, repo=repo)
+    transition = service.TransitionState(metadata=metadata, repo=repo)
     assert transition is not None
     shared["transition"] = transition
 
