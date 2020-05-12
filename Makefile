@@ -12,10 +12,11 @@ install: venv requirements.txt
 clean:
 	rm -rf venv/
 
-check:
-	venv/bin/pytest --showlocals --cov=meta/ meta/**/*.py tests/test_*.py
-
 types:
 	venv/bin/pytest --mypy --mypy-ignore-missing-imports meta/**/*.py tests/test_*.py
 
-test: check types
+check:
+	venv/bin/pytest --showlocals --exitfirst --verbose --tb=long --cov=meta/ meta/**/*.py tests/test_*.py
+
+test:
+	venv/bin/pytest --showlocals --exitfirst --verbose --tb=long --cov=meta/ --mypy --mypy-ignore-missing-imports meta/**/*.py tests/test_*.py
