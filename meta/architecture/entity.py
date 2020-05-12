@@ -5,11 +5,11 @@ from uuid import UUID, uuid4
 
 class Entity(VObject):
     """
-    Implements VObject, but includes a unique identifier
+    Extension of VObject for domain entity specific features
     """
 
     uuid: UUID
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: tuple, **kwargs: Dict[str, Any]) -> None:
         super().__init__(*args, **kwargs)
         self.inject("uuid", uuid4())
