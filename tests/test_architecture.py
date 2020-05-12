@@ -1,5 +1,4 @@
 from .context import arch
-from typing import NamedTuple
 
 def raises(test_case, exception):
     try:
@@ -33,6 +32,16 @@ def test_vobject():
     assert tvoa == tvob
     assert tvob != tvoc
     assert tvoc != tvod
+
+    tvo = TestVObject("z", -1)
+
+    assert tvo.__attrs__ == ("attr1", "attr2")
+
+    at1 = lambda: setattr(tvo, "attr1", "y")
+    assert raises(at1, AttributeError)
+
+    at2 = lambda: setattr(tvo, "attr2", 0)
+    assert raises(at2, AttributeError)
 
 def test_entity():
     class TestEntity(arch.Entity):

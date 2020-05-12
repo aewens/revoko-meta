@@ -1,18 +1,15 @@
 from meta.architecture import LogicError, VObject
 
 from typing import Dict, Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 class Entity(VObject):
     """
     Implements VObject, but includes a unique identifier
     """
 
-    def __init__(self, *args: tuple, **kwargs: Dict[str, Any]) -> None:
+    uuid: UUID
+
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self._uuid = uuid4()
-
-    @property
-    def uuid(self):
-        return self._uuid
+        self.inject("uuid", uuid4())
