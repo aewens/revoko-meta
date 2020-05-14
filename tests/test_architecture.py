@@ -88,6 +88,14 @@ def test_event_store():
             super().__init__()
 
             # This is not required and is used purely for testing purposes
+            self.clear()
+
+        def clear(self):
+            """
+            This is not required and is used purely for testing purposes
+            In fact, it would be a bad idea to do this outside of testing
+            """
+
             self._events = list()
 
         def save(self, events: arch.EventList) -> None:
@@ -122,7 +130,13 @@ def test_event_store():
         data1: str
         data2: int
 
-    def test_event_handler(events: arch.Events) -> None:
+    def test_event_handler1(events: arch.Events) -> None:
+        def event_handler(event: arch.Event) -> None:
+            events.append(event)
+            
+        return event_handler
+
+    def test_event_handler2(events: arch.Events) -> None:
         def event_handler(event: arch.Event) -> None:
             events.append(event)
             
@@ -170,9 +184,21 @@ def test_event_store():
         saved = lambda: store.save(events)
         assert not raises(saved, Exception)
 
-    handled_events = list()
-    handler = test_event_handler(handled_events)
+    handled_events1 = list()
+    handler1 = test_event_handler1(handled_events1)
 
-    applied = lambda: store.apply(handler)
-    assert not raises(applied, Exception)
-    assert handled_events == store.events
+    handled_events2 = list()
+    handler2 = test_event_handler2(handled_events2)
+
+    applied1 = lambda: store.apply(handler1, handler2)
+    assert not raises(applied1, Exception)
+    assert handled_events1 == store.events
+
+    # Reset to test again using two handlers
+    handled_events1 = list()
+    store.clear()
+
+    applied2 = lambda: store.apply(handler1, handler2)
+    assert not raises(applied2, Exception)
+    assert handled_events1 == handled_events2
+    assert handled_events1 == store.events
