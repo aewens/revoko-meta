@@ -1,6 +1,7 @@
+from meta.types import StrDict
 from meta.architecture import LogicError
 
-from typing import Dict, Tuple, Any
+from typing import Tuple
 
 class Namespace(object):
     """
@@ -10,7 +11,7 @@ class Namespace(object):
     # NOTE - All keys for the immutable key value pairs
     __attrs__: Tuple[str, ...] = tuple()
 
-    def __init__(self, *args: tuple, **kwargs: Dict[str, Any]) -> None:
+    def __init__(self, *args: tuple, **kwargs: StrDict) -> None:
         """
         Inject in arguments as immutable key value pairs
         """
@@ -18,8 +19,7 @@ class Namespace(object):
         for key, value in arguments.items():
             self.inject(key, value)
 
-    def _resolve_arguments(self, *args: tuple,
-        **kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    def _resolve_arguments(self, *args: tuple, **kwargs: StrDict) -> StrDict:
         """
         Resolve arbitrary arguments to dictionary using class type annotations
         """
@@ -93,5 +93,5 @@ class VObject(Namespace):
     Extension of Namespace for value object specific features
     """
 
-    def __init__(self, *args: tuple, **kwargs: Dict[str, Any]) -> None:
+    def __init__(self, *args: tuple, **kwargs: StrDict) -> None:
         super().__init__(*args, **kwargs)

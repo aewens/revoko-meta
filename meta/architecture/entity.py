@@ -1,3 +1,4 @@
+from meta.types import StrDict
 from meta.architecture import LogicError, VObject
 
 from typing import Dict, Any
@@ -10,6 +11,6 @@ class Entity(VObject):
 
     uuid: UUID
 
-    def __init__(self, *args: tuple, **kwargs: Dict[str, Any]) -> None:
+    def __init__(self, *args: tuple, **kwargs: StrDict) -> None:
         super().__init__(*args, **kwargs)
         self.inject("uuid", uuid4())
