@@ -67,6 +67,7 @@ def test_event_store():
     # NOTES
     # arch.EventList == typing.List[arch.Event]
     # arch.EventHandler == typing.Callable[[arch.Event], None]
+    # arch.EventHandlers == typing.Tuple[arch.EventHandler, ...]
 
     class TestInvalidEventStoreBackend(arch.EventStoreBackend):
         """
@@ -96,13 +97,14 @@ def test_event_store():
 
             self._events.extend(events)
 
-        def apply(self, handler: arch.EventHandler) -> None:
+        def apply(self, *handlers: arch.EventHandlers) -> None:
             """
             A "real" implementation would read from file or database here
             """
 
             for event in self._events:
-                handler(event)
+                for handler in handlers:
+                    handler(event)
 
         @property
         def events(self):
