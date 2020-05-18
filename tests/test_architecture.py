@@ -14,12 +14,29 @@ def raises(test_case, exception):
         return False
 
 def test_vobject():
+    class TestNamespace(arch.Namespace):
+        test: bool
+
+    tn1 = lambda: TestNamespace(True)
+    assert not raises(tn1, Exception)
+
+    tn2 = lambda: TestNamespace()
+    assert raises(tn2, arch.LogicError)
+
+    tn = TestNamespace(True)
+    assert repr(tn) == "<TestNamespace(test=True)>"
+    assert tn._resolve_arguments(False) == {"test": False}
+
+    injected = lambda: tn.inject("key", "value")
+    assert not raises(injected, Exception)
+    assert tn.key == "value"
+
     class TestVObject(arch.VObject):
         attr1: str
         attr2: int
 
     tvo1 = lambda: TestVObject("a", 1)
-    assert not raises(tvo1, arch.LogicError)
+    assert not raises(tvo1, Exception)
 
     tvo2 = lambda: TestVObject("a", 1, 2)
     assert raises(tvo2, arch.LogicError) 
@@ -35,6 +52,13 @@ def test_vobject():
     assert tvoa == tvob
     assert tvob != tvoc
     assert tvoc != tvod
+
+    class AnotherVObject(arch.VObject):
+        attr1: str
+
+    avo = AnotherVObject("a")
+
+    assert tvoa != avo
 
     tvo = TestVObject("z", -1)
 
@@ -54,7 +78,7 @@ def test_entity():
         attr2: int
 
     tel = lambda: TestEntity("a", 1)
-    assert not raises(tel, arch.LogicError)
+    assert not raises(tel, Exception)
 
     te = tel()
     assert isinstance(te, arch.VObject)
@@ -75,6 +99,9 @@ def test_event_store():
         """
         pass
 
+    invalid_backend = lambda: TestInvalidEventStoreBackend()
+    assert raises(invalid_backend, TypeError)
+
     class TestEventStoreBackend(arch.EventStoreBackend):
         """
         Stand in for a "real" backend that would read/write to file or database
@@ -88,14 +115,6 @@ def test_event_store():
             super().__init__()
 
             # This is not required and is used purely for testing purposes
-            self.clear()
-
-        def clear(self):
-            """
-            This is not required and is used purely for testing purposes
-            In fact, it would be a bad idea to do this outside of testing
-            """
-
             self._events = list()
 
         def save(self, events: arch.EventList) -> None:
@@ -105,14 +124,20 @@ def test_event_store():
 
             self._events.extend(events)
 
-        def apply(self, *handlers: arch.EventHandlers) -> None:
+        def apply(self, *handlers: arch.EventHandler) -> None:
             """
             A "real" implementation would read from file or database here
             """
 
             for event in self._events:
+                print(f"Handlers: {len(handlers)}")
                 for handler in handlers:
+                    print(handler)
+                    print(event)
+                    print()
                     handler(event)
+
+            print("END")
 
         @property
         def events(self):
@@ -130,13 +155,13 @@ def test_event_store():
         data1: str
         data2: int
 
-    def test_event_handler1(events: arch.Events) -> None:
+    def test_event_handler1(events: arch.EventList) -> arch.EventHandler:
         def event_handler(event: arch.Event) -> None:
             events.append(event)
             
         return event_handler
 
-    def test_event_handler2(events: arch.Events) -> None:
+    def test_event_handler2(events: arch.EventList) -> arch.EventHandler:
         def event_handler(event: arch.Event) -> None:
             events.append(event)
             
@@ -187,18 +212,21 @@ def test_event_store():
     handled_events1 = list()
     handler1 = test_event_handler1(handled_events1)
 
-    handled_events2 = list()
-    handler2 = test_event_handler2(handled_events2)
-
-    applied1 = lambda: store.apply(handler1, handler2)
+    applied1 = lambda: store.apply(handler1)
     assert not raises(applied1, Exception)
+    assert len(handled_events1) > 0
     assert handled_events1 == store.events
 
     # Reset to test again using two handlers
     handled_events1 = list()
-    store.clear()
+    handler1 = test_event_handler1(handled_events1)
+
+    handled_events2 = list()
+    handler2 = test_event_handler2(handled_events2)
 
     applied2 = lambda: store.apply(handler1, handler2)
     assert not raises(applied2, Exception)
+    assert len(handled_events1) > 0
+    assert len(handled_events2) > 0
     assert handled_events1 == handled_events2
     assert handled_events1 == store.events
