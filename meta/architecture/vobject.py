@@ -76,13 +76,7 @@ class Namespace(object):
         if type(self) != type(other):
             return False
 
-        self_attrs = self.__attrs__
-        other_attrs = other.__attrs__
-
-        if len(self_attrs) != len(other_attrs):
-            return False
-
-        for key in other_attrs:
+        for key in other.__attrs__:
             if getattr(other, key, None) != getattr(self, key, None):
                 return False
 
