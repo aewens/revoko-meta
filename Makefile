@@ -16,7 +16,7 @@ types:
 	venv/bin/pytest --mypy --mypy-ignore-missing-imports meta/**/*.py tests/test_*.py
 
 check:
-	venv/bin/pytest --showlocals --exitfirst --verbose --tb=long --cov=meta/ meta/**/*.py tests/test_*.py
+	venv/bin/pytest --showlocals --exitfirst --verbose --tb=long --cov-report term-missing --cov=meta/ meta/**/*.py tests/test_*.py
 
 test:
-	venv/bin/pytest --showlocals --exitfirst --verbose --tb=long --cov=meta/ --mypy --mypy-ignore-missing-imports meta/**/*.py tests/test_*.py
+	venv/bin/pytest --showlocals --exitfirst --verbose --tb=long --cov-report term-missing --cov=meta/ --mypy --mypy-ignore-missing-imports meta/**/*.py tests/test_*.py
