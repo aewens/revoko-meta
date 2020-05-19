@@ -97,7 +97,6 @@ def test_event_store():
         """
         Will fail, does not implement save and apply
         """
-        pass
 
     invalid_backend = lambda: TestInvalidEventStoreBackend()
     assert raises(invalid_backend, TypeError)
@@ -111,7 +110,7 @@ def test_event_store():
         # This is not required and is used purely for testing purposes
         _events: arch.EventList
 
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__()
 
             # This is not required and is used purely for testing purposes
@@ -130,14 +129,8 @@ def test_event_store():
             """
 
             for event in self._events:
-                print(f"Handlers: {len(handlers)}")
                 for handler in handlers:
-                    print(handler)
-                    print(event)
-                    print()
                     handler(event)
-
-            print("END")
 
         @property
         def events(self):
@@ -229,4 +222,106 @@ def test_event_store():
     assert len(handled_events1) > 0
     assert len(handled_events2) > 0
     assert handled_events1 == handled_events2
+    
+def test_message_bus():
+    assert hasattr(arch.Service, "dispatch")
+    assert callable(arch.Service.dispatch)
+    assert hasattr(arch.Service, "add_subscriber")
+    assert callable(arch.Service.add_subscriber)
+    assert hasattr(arch.Service, "remove_subscriber")
+    assert callable(arch.Service.remove_subscriber)
+    assert hasattr(arch.Service, "register")
+    assert callable(arch.Service.register)
+
+    assert hasattr(arch.Service, "subscriptions")
+    assert isinstance(arch.Service.subscriptions, dict)
+
+    class NoopEventStoreBackend(arch.EventStoreBackend):
+        """
+        An event store backend that does nothing
+        """
+
+        def save(self, events: arch.EventList) -> None:
+            """
+            A "real" implementation would write to file or database here
+            """
+
+        def apply(self, *handlers: arch.EventHandler) -> None:
+            """
+            A "real" implementation would read from file or database here
+            """
+
+    store = arch.EventStore(backend)
+
+    created = lambda: MessageBus(store)
+    assert not raises(created, Exception)
+
+    bus = MessageBus(store)
+    assert hasattr(bus, "dispatch")
+    assert callable(bus.dispatch)
+    assert hasattr(bus, "react")
+    assert callable(bus.react)
+
+    registered = lambda: arch.Service.register(bus)
+    assert not raises(registered, Exception)
+
+    class Producer(arch.Entity):
+        pass
+
+    class ProducedEvent(arch.Event):
+        entity: Producer
+        index: int
+
+    class ProducerService(arch.Service):
+        _entity: Producer
+        _generated: arch.EventList
+
+        def __init__(self, entity: Producer) -> None:
+            self._entity = entity
+            self._generated = list()
+
+        @property
+        def generated(self):
+            return self._generated
+
+        def generate(self) -> None:
+            for i in range(5):
+                event = AddedEvent(self._entity, index=i)
+                self._generated.append(event)
+                self.dispatch(event)
+
+    class InvalidConsumer(object):
+        """
+        Will fail, does not implement receive
+        """
+
+    class TestConsumer(object):
+        _events: arch.EventList
+
+        def __init__(self) -> None:
+            self._events = list()
+
+        @property
+        def events(self):
+            return self._events
+
+        def receive(self, event: arch.Event) -> None:
+            self._events.append(event)
+
+    consumer = TestConsumer()
+    producer = Producer()
+    service = ProducerService(producer)
+    assert "ProducerService" in arch.Service.subscriptions
+    assert isinstance(arch.Service.subscriptions["ProducerService"], list)
+    assert len(arch.Service.subscriptions["ProducerService"]) == 0
+
+    service.add_subscriber(consumer)
+    assert len(arch.Service.subscriptions["ProducerService"]) == 1
+    assert consumer in arch.Service.subscriptions["ProducerService"]
+
+    service.generate()
+
+    assert len(consumer.events) > 0
+    assert len(service.generated) > 0
+    assert consumer.events == service.generated
     assert handled_events1 == store.events
